@@ -33,7 +33,7 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 RUN rm /etc/apache2/mods-enabled/alias.conf
 COPY docker/000-default.conf /etc/apache2/sites-available/
 COPY docker/docker-entrypoint.sh /bin
-
+COPY docker/mpm_event.conf /etc/apache2/mods-available/
 # Link to cgi-bin executable
 # RUN chmod o+x /usr/local/bin/mapserv
 # RUN ln -s /usr/local/bin/mapserv /usr/lib/cgi-bin/mapserv
@@ -41,7 +41,6 @@ COPY docker/docker-entrypoint.sh /bin
 
 COPY . /srv/mapserver/
 RUN rm -rf /srv/mapserver/private
-
 
 EXPOSE 80
 
