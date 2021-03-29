@@ -21,17 +21,6 @@
 # sudo apt-get install -y gdal-bin python-gdal
 #
 # -----------------------------------------
-#
-# In 2018/2019 the luchtfotos files need to be translated first to remove an alpha layer. Run this in the dir of the external harddrive
-# In the 2020 dataset this layer does not seem to exist anymore.
-#
-# for i in *.tif; do
-#     [ -f "$i" ] || break
-#     gdal_translate $i /mnt/lufo2020/$i -b 1 -b 2 -b 3 -mask 4 --config GDAL_TIFF_INTERNAL_MASK YES
-# done
-#
-# cp -a *.aux /mnt/lufo2020
-# cp -a *.tfw /mnt/lufo2020
 
 SOURCEDIR=$1
 DESTDIR_ROOT=$2
@@ -39,20 +28,19 @@ DESTDIR=$2/pyramid
 YEAR=$3
 TYPE=$4
 
-# Create a list of images in the source directory
+for i in $SOURCEDIR/*.tif; do
+    [ -f "$i" ] || break
+    gdal_translate $i $DESTDIR_ROOT/$(basename $i) -a_srs "EPSG:28992" -b 1 -b 2 -b 3
+done
 
-if [ -f /tmp/list.txt ] ; then
-    rm -r /tmp/list.txt
-fi
-
-ls $SOURCEDIR/*.tif > /tmp/list.txt
+gdalbuildvrt -overwrite -resolution highest -r cubic -hidenodata -srcnodata "0 0 0" $DESTDIR_ROOT/overview.vrt $DESTDIR_ROOT/*.tif
 
 #if [ -d $DESTDIR ] ; then
 #    rm -rf $DESTDIR
 #fi
 
 mkdir -p $DESTDIR/0
-gdal_retile.py -v -r cubic -levels 5 -ps 8192 8192 -co TILED=YES -co COMPRESS=JPEG -co PHOTOMETRIC=YCBCR -s_srs "EPSG:28992" -targetDir $DESTDIR --optfile /tmp/list.txt
+gdal_retile.py -v -r cubic -levels 5 -ps 8192 8192 -co TILED=YES -co COMPRESS=JPEG -co PHOTOMETRIC=YCBCR -s_srs "EPSG:28992" -targetDir $DESTDIR $DESTDIR_ROOT/overview.vrt
 
 # Put original resolution images in their own subdirectory
 
