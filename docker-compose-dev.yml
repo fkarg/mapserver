@@ -1,0 +1,38 @@
+version: "3.0"
+services:
+  database:
+    build: database/
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: reistijdenauto
+      POSTGRES_USER: reistijdenauto
+      POSTGRES_PASSWORD: insecure
+
+  web:
+    build: src/
+    ports:
+      - "8000:8000"
+    links:
+      - database
+    volumes:
+      - "./src/:/app/"
+    command: >
+      bash -c "cd /app && \
+               bash -c /app/docker-wait.sh && \
+               python manage.py runserver 0.0.0.0:8000"
+    environment:
+      SECRET_KEY: insecure
+
+  mapserver:
+    build: mapserver/
+    ports:
+      - "8070:80"
+    links:
+      - database
+    environment:
+      REISTIJDENAUTO_DB_NAME: reistijdenauto
+      REISTIJDENAUTO_DB_USER: reistijdenauto
+      REISTIJDENAUTO_DB_PASSWORD: insecure
+      REISTIJDENAUTO_DB_HOST: database
+
